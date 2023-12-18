@@ -126,12 +126,19 @@ class Tutor(Agent):
         formatted_prompt = TUTOR_PRESENTATION_SCRIPT_TEMPLATE.format(presentation_html=presentation_html_str)
         presentation_script=self.llm.predict(formatted_prompt)
         logging.warning(presentation_script)
-        response = polly_client.synthesize_speech(VoiceId='Joey',
-                OutputFormat='mp3', 
-                Text = presentation_script)
-        file_bytes= response['AudioStream'].read()
+        file_bytes=self.speak(presentation_script,polly_client)
         audio_url=self._savePollyIntoS3(file_bytes,s3)
         self._sendDataToClient(apigw_client,connection_id,{"audio_url":audio_url,"presentation_script":presentation_script})
+    
+    
+    def speak(self,script,polly_client):
+        response =  polly_client.synthesize_speech(VoiceId='Gregory',
+                                                   OutputFormat='mp3',
+                                                   Engine="long-form",
+                                                   Text = script)
+        file_bytes= response['AudioStream'].read()
+        return file_bytes
+       
         
     def _savePollyIntoS3(self,file_bytes,s3):
         bucket_name = 'boostfs'
