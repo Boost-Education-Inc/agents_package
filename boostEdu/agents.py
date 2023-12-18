@@ -45,7 +45,7 @@ class Tutor(Agent):
         BASE_URL = os.environ.get("BASE_URL") 
         API_KEY = os.environ.get("API_KEY")
         DEPLOYMENT_NAME = os.environ.get("DEPLOYMENT_NAME")
-        OPENAI_KEY = os.environ.get("OPEN_AI_KEY")
+        #OPENAI_KEY = os.environ.get("OPEN_AI_KEY")
         
         if self.is_streaming:
             callback = AsyncIteratorCallbackHandler()
