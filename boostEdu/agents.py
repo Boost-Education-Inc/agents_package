@@ -10,7 +10,7 @@ from langchain.callbacks import AsyncIteratorCallbackHandler
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from langchain.vectorstores import Vectara
-from langchain.chat_models import AzureChatOpenAI
+from langchain.chat_models import ChatOpenAI
 
 from boostEdu.prompt_templates import TUTOR_PRESENTATION_TEMPLATE,TUTOR_PLAN_TEMPLATE,TUTOR_CONTEXT_TEMPLATE,TUTOR_PRESENTATION_SCRIPT_TEMPLATE
 
@@ -42,29 +42,20 @@ class Tutor(Agent):
         self.allInteractionsMemory, self.longTermMemory =self._initMemory()
    
     def _initLLM(self):
-        BASE_URL = os.environ.get("BASE_URL") 
-        API_KEY = os.environ.get("API_KEY")
-        DEPLOYMENT_NAME = os.environ.get("DEPLOYMENT_NAME")
-        #OPENAI_KEY = os.environ.get("OPEN_AI_KEY")
-        
+        OPENAI_KEY = os.environ.get("OPEN_AI_KEY")
+        MODEL_NAME = os.environ.get("OPEN_AI_MODEL_NAME")
         if self.is_streaming:
             callback = AsyncIteratorCallbackHandler()
-            return AzureChatOpenAI(
-            openai_api_base=BASE_URL,
-            openai_api_version="2023-05-15",
-            deployment_name=DEPLOYMENT_NAME,
-            openai_api_key=API_KEY,
-            openai_api_type="azure",
+            return ChatOpenAI(
+            openai_api_key=OPENAI_KEY,
+            model=MODEL_NAME,
             temperature= 0.1,
             streaming=True,
             callbacks=[callback])
         else:
-            return AzureChatOpenAI(
-            openai_api_base=BASE_URL,
-            openai_api_version="2023-05-15",
-            deployment_name=DEPLOYMENT_NAME,
-            openai_api_key=API_KEY,
-            openai_api_type="azure",
+            return ChatOpenAI(
+            openai_api_key=OPENAI_KEY,
+            model=MODEL_NAME,
             temperature= 0.1)
     
     def _initContentRetriever(self):

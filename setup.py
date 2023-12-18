@@ -12,6 +12,5 @@ setup(
     author_email='juan.sebastian@boostedu.co',
     packages=['boostEdu'],
     include_package_data=True,
-    # url='https://github.com/Boost-Education-Inc/agents_package.git',
     install_requires=requirements,
 )
