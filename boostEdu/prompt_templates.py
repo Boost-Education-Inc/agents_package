@@ -167,6 +167,8 @@ TUTOR_PRESENTATION_SCRIPT_TEMPLATE = ChatPromptTemplate.from_template("""
         Return a short script for a person to read and explain what is inside the presentation
         Just describe the text inside each slide
         Do not describe the graphics, images, tables, colors, etc
+        Start saying welcome to boost education.
+        Do not mention swiper or any other library.
         ----
         Swiper presentation HTML code:
         {presentation_html}
