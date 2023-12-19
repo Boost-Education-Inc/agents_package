@@ -147,15 +147,12 @@ TUTOR_PRESENTATION_TEMPLATE = ChatPromptTemplate.from_template("""
         Do not add padding or margin to the slides
         Do not return anything else besides the HTML code
         Your response must be in a single line of text that be interpreted as HTML code
-        Adapt your response base on the user's experience things he/she likes, goals and chat history
-        Do not include user's personal data inside the slides (name, email, etc)
-        Use the following content passages, user data and chat history to create the presentation:
+        Explain the content(Book, class, etc) and also adapt it base on the thinks the user likes, the user's goals
+        DO NOT include user's personal data inside the slides (name, email,age etc)
         ----
         User data:
         {student_data}
-        ----
-        Chat History:
-        {chat_history}
+   
         ----
         Content (Book, class, etc.):
         {context}
