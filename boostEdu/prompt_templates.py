@@ -134,22 +134,22 @@ TUTOR_PLAN_TEMPLATE = ChatPromptTemplate.from_template("""
 
 
 TUTOR_PRESENTATION_TEMPLATE = ChatPromptTemplate.from_template("""
-        Create a beatiful, visually attractive, creative and clear 6 slides presentation about the content using swiper and base on the following indications:
+        Create a beatiful, creative, visually attractive and clear 6 slides presentation about the content using swiper
         Answer in english
         Just return the HTML code that is inside the <div class="swiper" style="width: 40vw; height: 50vh; border-radius: 10px;">
         Use the following clases : swiper-wrapper, swiper-slide, .swiper-pagination, .swiper-button-next, .swiper-button-prev, .swiper-scrollbar
-        Avoid line jumps in the HTML code
-        Avoid adding an init label 'html' to your response
         Use different font colors, font styles, background colors, background images, aligments of elements and markdown style
         Use the font: Arial in all the slides
-        To each slide add a title, a subtitle and and a text
+        Make sure the text has a different font color than the background
+        In each slide add a title, a subtitle and and a paragraph
         Do not change the width of the slides
         The .swiper-button-next and .swiper-button-prev must be black
         Do not add padding or margin to the slides
         Do not return anything else besides the HTML code
         Your response must be in a single line of text that be interpreted as HTML code
-        Adapt your response base on the user's data and the chat history
-        Use the following passages and data for each slide:
+        Adapt your response base on the user's experience and chat history
+        Do not include user's personal data inside the slides (name, email, etc)
+        Use the following content passages, user data and chat history to create the presentation:
         ----
         User data:
         {student_data}
@@ -165,6 +165,8 @@ TUTOR_PRESENTATION_TEMPLATE = ChatPromptTemplate.from_template("""
 TUTOR_PRESENTATION_SCRIPT_TEMPLATE = ChatPromptTemplate.from_template("""
         Given the following html code of a swiper presentation
         Return a short script for a person to read and explain what is inside the presentation
+        Just describe the text inside each slide
+        Do not describe the graphics, images, tables, colors, etc
         ----
         Swiper presentation HTML code:
         {presentation_html}
