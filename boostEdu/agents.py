@@ -192,3 +192,20 @@ class Tutor(Agent):
             Data=json.dumps(data, ensure_ascii=False)
         )
         logging.warning(f"ℹ️🔔Response: {response}")
+
+
+
+class ContentAgent(Agent):
+    def __init__(self,vectara_customer_id, vectara_corpus_id, vectara_api_key,k=5):
+        super().__init__()
+        self.contentRetriever = self._initContentRetriever(vectara_customer_id, vectara_corpus_id, vectara_api_key,k)
+    
+    def _initContentRetriever(self, vectara_customer_id, vectara_corpus_id, vectara_api_key,k):
+        vectara = Vectara(
+            vectara_customer_id= vectara_customer_id,
+            vectara_corpus_id= vectara_corpus_id,
+            vectara_api_key= vectara_api_key
+        )
+        retriever = vectara.as_retriever(lambda_val=0.025, k=k, filter=None)
+        return retriever 
+        
