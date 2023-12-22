@@ -16,31 +16,16 @@ from boostEdu.prompt_templates import TUTOR_PRESENTATION_TEMPLATE,TUTOR_PLAN_TEM
 
 
 class Agent():
-    def __init__(self):
+    def __init__(self,is_streaming=False):
         self.DB= self._initDB()
-        
+        self.is_streaming=is_streaming
+        self.llm=self._initLLM()
     
     def _initDB(self):
         MONGO_URL = f"mongodb+srv://{os.environ.get('DB_USERNAME')}:{os.environ.get('DB_PASSWORD')}@cluster0.yvvgepo.mongodb.net/?retryWrites=true&w=majority"
         MONGO_CLIENT = MongoClient(MONGO_URL, server_api=ServerApi('1'))
         return MONGO_CLIENT[os.environ.get('DB_NAME')]
 
-
-class Tutor(Agent):
-    def __init__(self,student_id,content_id,is_streaming=False):
-        super().__init__()
-        ###IDS####
-        self.student_id=student_id
-        self.content_id=content_id
-        
-        ########################
-        
-        self.is_streaming=is_streaming
-        
-        self.llm=self._initLLM()
-        self.contentRetriever = self._initContentRetriever()
-        self.allInteractionsMemory, self.longTermMemory =self._initMemory()
-   
     def _initLLM(self):
         OPENAI_KEY = os.environ.get("OPEN_AI_KEY")
         MODEL_NAME = os.environ.get("OPEN_AI_MODEL_NAME")
@@ -57,6 +42,20 @@ class Tutor(Agent):
             openai_api_key=OPENAI_KEY,
             model=MODEL_NAME,
             temperature= 0.1)
+
+
+class Tutor(Agent):
+    def __init__(self,student_id,content_id,is_streaming=False):
+        super().__init__(is_streaming)
+        ###IDS####
+        self.student_id=student_id
+        self.content_id=content_id
+        
+        ########################
+        
+        self.contentRetriever = self._initContentRetriever()
+        self.allInteractionsMemory, self.longTermMemory =self._initMemory()
+   
     
     def _initContentRetriever(self):
             os.environ["VECTARA_CUSTOMER_ID"] = "3566257016"
@@ -194,10 +193,9 @@ class Tutor(Agent):
         logging.warning(f"ℹ️🔔Response: {response}")
 
 
-
 class ContentAgent(Agent):
-    def __init__(self,vectara_customer_id, vectara_corpus_id, vectara_api_key,k=5):
-        super().__init__()
+    def __init__(self,vectara_customer_id, vectara_corpus_id, vectara_api_key,k=5,is_streaming=False):
+        super().__init__(is_streaming)
         self.contentRetriever = self._initContentRetriever(vectara_customer_id, vectara_corpus_id, vectara_api_key,k)
     
     def _initContentRetriever(self, vectara_customer_id, vectara_corpus_id, vectara_api_key,k):
