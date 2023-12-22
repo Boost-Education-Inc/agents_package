@@ -194,16 +194,16 @@ class Tutor(Agent):
 
 
 class ContentAgent(Agent):
-    def __init__(self,vectara_customer_id, vectara_corpus_id, vectara_api_key,k=5,is_streaming=False):
+    def __init__(self,vectara_customer_id, vectara_corpus_id, vectara_api_key,k=5,search_type='similarity',is_streaming=False):
         super().__init__(is_streaming)
-        self.contentRetriever = self._initContentRetriever(vectara_customer_id, vectara_corpus_id, vectara_api_key,k)
+        self.contentRetriever = self._initContentRetriever(vectara_customer_id, vectara_corpus_id, vectara_api_key,k,search_type)
     
-    def _initContentRetriever(self, vectara_customer_id, vectara_corpus_id, vectara_api_key,k):
+    def _initContentRetriever(self, vectara_customer_id, vectara_corpus_id, vectara_api_key,k,search_type):
         vectara = Vectara(
             vectara_customer_id= vectara_customer_id,
             vectara_corpus_id= vectara_corpus_id,
             vectara_api_key= vectara_api_key
         )
-        retriever = vectara.as_retriever(lambda_val=0.025, k=k, filter=None)
+        retriever = vectara.as_retriever(search_type=search_type,search_kwargs={"k":k})
         return retriever 
         
