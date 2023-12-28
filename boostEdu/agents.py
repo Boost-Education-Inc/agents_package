@@ -220,7 +220,7 @@ class ContentAgent(Agent):
         projection = {"params": 1,"_id":0}
         logging.info(f"🔔Agent id: {self.agid}")
         result = collection.find_one(query, projection)
-        return result
+        return result["params"]
 
 
 #projection = {"vectara_customer_id": 1, "vectara_corpus_id": 1, "vectara_api_key": 1,"_id":0}'       
