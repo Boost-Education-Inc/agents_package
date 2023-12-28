@@ -193,17 +193,45 @@ class Tutor(Agent):
         logging.warning(f"ℹ️🔔Response: {response}")
 
 
+
 class ContentAgent(Agent):
-    def __init__(self,vectara_customer_id, vectara_corpus_id, vectara_api_key,k=5,search_type='similarity',is_streaming=False):
+    def __init__(self,agid=None,ret_params=None,is_streaming=False):
         super().__init__(is_streaming)
-        self.contentRetriever = self._initContentRetriever(vectara_customer_id, vectara_corpus_id, vectara_api_key,k,search_type)
-    
-    def _initContentRetriever(self, vectara_customer_id, vectara_corpus_id, vectara_api_key,k,search_type):
-        vectara = Vectara(
-            vectara_customer_id= vectara_customer_id,
-            vectara_corpus_id= vectara_corpus_id,
-            vectara_api_key= vectara_api_key
-        )
-        retriever = vectara.as_retriever(search_type=search_type,search_kwargs={"k":k})
-        return retriever 
+        if (agid==None and ret_params==None): raise Exception("You need to provide either agid or ret_params")
+        self.agid=agid
+        self.retriever_params=ret_params
         
+    def _getRetrieverParams(self):
+        collection = self.DB["content_agents"]
+        if self.agid==None:
+            self.agid=str(uuid.uuid4())
+            collection.insert_one({"_id":self.agid,"params":self.retriever_params})
+        query = {"_id": self.agid}
+        #projection = {"vectara_customer_id": 1, "vectara_corpus_id": 1, "vectara_api_key": 1,"_id":0}
+        projection = {"params": 1,"_id":0}
+        result = collection.find_one(query, projection)                
+        return result
+
+
+# class ContentAgent(Agent):
+#     def __init__(self,vectara_customer_id, vectara_corpus_id, vectara_api_key,k=5,search_type='similarity',is_streaming=False):
+#         super().__init__(is_streaming)
+#         self.contentRetriever = self._initContentRetriever(vectara_customer_id, vectara_corpus_id, vectara_api_key,k,search_type)
+    
+#     def _initContentRetriever(self, vectara_customer_id, vectara_corpus_id, vectara_api_key,k,search_type):
+#         vectara = Vectara(
+#             vectara_customer_id= vectara_customer_id,
+#             vectara_corpus_id= vectara_corpus_id,
+#             vectara_api_key= vectara_api_key
+#         )
+#         retriever = vectara.as_retriever(search_type=search_type,search_kwargs={"k":k})
+#         return retriever 
+
+
+{
+    "_id":"fad",
+    "params":{
+        "type":"vectara",
+        "vectara_customer_id": "3566257016",
+    }
+}    
