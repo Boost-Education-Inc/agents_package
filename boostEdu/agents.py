@@ -200,16 +200,22 @@ class ContentAgent(Agent):
         super().__init__(is_streaming)
         if (agid==None and ret_params==None): raise Exception("You need to provide either agid or ret_params")
         self.agid=agid
-        #self.retriever_params=ret_params
-        self._getRetrieverFromParams(ret_params)
-      
+        self.contentRetriever=self._getRetrieverFromParams(ret_params)
+        
     def _getRetrieverFromParams(self,ret_params):
         params= self._getRetrieverParams(ret_params)
         logging.info(f"🔔Retriever params: {params}")
         if params["type"]=='vectara':
             logging.info(f"🟢 Is Vectara")
+            vectara = Vectara(
+                vectara_customer_id=params["keys"]["vectara_customer_id"],
+                vectara_corpus_id=params["keys"]["vectara_corpus_id"],
+                vectara_api_key=params["keys"]["vectara_api_key"],
+            )
+            retriever = vectara.as_retriever(search_type=params["search_type"],search_kwargs=params["search_kwargs"])
         else:
-            logging.info(f"🔴Not Vectara")    
+            logging.info(f"🔴Not Vectara")
+        return retriever    
         
     def _getRetrieverParams(self,ret_params):
         collection = self.DB["content_agents"]
@@ -237,13 +243,4 @@ class ContentAgent(Agent):
 #             vectara_api_key= vectara_api_key
 #         )
 #         retriever = vectara.as_retriever(search_type=search_type,search_kwargs={"k":k})
-#         return retriever 
-
-
-{
-    "_id":"fad",
-    "params":{
-        "type":"vectara",
-        "vectara_customer_id": "3566257016",
-    }
-}    
+#         return retriever  
