@@ -12,7 +12,9 @@ from pymongo.server_api import ServerApi
 from langchain.vectorstores import Vectara
 from langchain.chat_models import ChatOpenAI
 
-from boostEdu.prompt_templates import TUTOR_PRESENTATION_TEMPLATE,TUTOR_PLAN_TEMPLATE,TUTOR_CONTEXT_TEMPLATE,TUTOR_PRESENTATION_SCRIPT_TEMPLATE
+#from boostEdu.prompt_templates import TUTOR_PRESENTATION_TEMPLATE,TUTOR_PLAN_TEMPLATE,TUTOR_CONTEXT_TEMPLATE,TUTOR_PRESENTATION_SCRIPT_TEMPLATE,CONTENT_AGENT_SUMMARY_CONTENT_TEMPLATE, CONTENT_AGENT_ANSW_QUESTION_CONTENT_TEMPLATE
+
+from boostEdu.prompt_templates import *
 
 logging.getLogger().setLevel(logging.DEBUG)
 
@@ -227,6 +229,19 @@ class ContentAgent(Agent):
         logging.info(f"🔔Agent id: {self.agid}")
         result = collection.find_one(query, projection)
         return result["params"]
+    
+    def askAboutContent(self,question=None):
+        content_chunks = "".join(document.page_content for document in self.contentRetriever.invoke(input="Key aspects of each part/charper/section"))
+        if question == None:
+            formatted_prompt = CONTENT_AGENT_SUMMARY_CONTENT_TEMPLATE.format(content_chunks=content_chunks)
+        else:
+            formatted_prompt = CONTENT_AGENT_ANSW_QUESTION_CONTENT_TEMPLATE.format(content_chunks=content_chunks,question=question)
+                
+        logging.warning(formatted_prompt)
+        contentRetrieve=self.llm.predict(formatted_prompt)
+        return contentRetrieve
+
+
 
 
 #projection = {"vectara_customer_id": 1, "vectara_corpus_id": 1, "vectara_api_key": 1,"_id":0}'       

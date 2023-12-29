@@ -3,6 +3,8 @@ from langchain.prompts import ChatPromptTemplate
 
 ##memoria procedimental
 
+####################----------TUTOR AGENT PROMPTS-----------####################
+
 TUTOR_CONTEXT_TEMPLATE = ChatPromptTemplate.from_template("""
         Answer in english.
         In each answer, call the the user by his/her name.
@@ -171,5 +173,37 @@ TUTOR_PRESENTATION_SCRIPT_TEMPLATE = ChatPromptTemplate.from_template("""
         ----
         Swiper presentation HTML code:
         {presentation_html}
+        ----
+        """)
+
+
+
+####################----------CONTENT AGENT PROMPTS-----------####################
+
+CONTENT_AGENT_SUMMARY_CONTENT_TEMPLATE = ChatPromptTemplate.from_template("""
+        You are an expert explaining about the following content.
+        Thus, given the following passages (Chunks of data) from a content (Book, class, etc.) return a deep and extensive summary of the content, remarking the most important concepts and ideas.
+        At the beginning of the summary, show the content's metadata(title, author, etc.)
+        ----
+        Content Chunks:
+        {content_chunks}
+        ----
+        """)
+
+
+
+CONTENT_AGENT_ANSW_QUESTION_CONTENT_TEMPLATE = ChatPromptTemplate.from_template("""
+        You are an expert explaining about the following content.
+        You received the following question.
+        
+        ----
+        Question:
+        {question}
+        
+        Thus, given the following passages (Chunks of data) from a content (Book, class, etc.) return a deep and extensive answer to the question about the content, remarking the most important concepts and ideas.
+        At the beginning of the summary, show the content's metadata(title, author, etc.)
+        ----
+        Content Chunks:
+        {content_chunks}
         ----
         """)
