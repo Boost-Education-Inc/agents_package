@@ -149,8 +149,12 @@ class ContentExpert(Agent):
 
  
 class Tutor(Agent):
-    def __init__(self,is_streaming=False):
+    def __init__(self,student_id,content_id,is_streaming=False):
         super().__init__(None,is_streaming)
+        
+        self.student_id=student_id
+        self.content_id=content_id
+        
                
     def retrieve(self,studentData,studentLongMemory,content,perception,awsManager=None):
         formatted_prompt = TUTOR_CONTEXT_TEMPLATE.format(student_data=studentData,
@@ -166,7 +170,7 @@ class Tutor(Agent):
         
         
         
-        if (self.is_streaming==False): return output 
+        if (self.is_streaming==False): return output
         
    
     def retrievePresentation(self,studentData,studentLongMemory,content,awsManager:AWSManager=None):
@@ -226,3 +230,30 @@ class Tutor(Agent):
             yield "[¬TUTOR_END¬]"
             self.llm.callbacks[0].done.set()
         await task
+        
+            
+    def _updateShortMemory(self,newInteraction):
+        collection = self.MemoryDB["short_term_memories"]
+        query = {"student_id": self.student_id, "content_id": self.content_id}
+        projection = {"student_id": 0,"content_id":0,"_id":0,"memory":1} 
+        memory_document = collection.find_one(query,projection)
+        if memory_document is None:
+            collection.insert_one({"_id":str(uuid.uuid4()),"student_id":self.student_id,"content_id":self.content_id,"memory":[]})
+            memory_document = collection.find_one(query,projection)
+        shortMemory=memory_document["memory"]
+        shortMemory.insert(0,newInteraction)
+        update_operation = {"$set": {"memory":shortMemory}}
+        collection.update_one(query, update_operation)
+        
+    # def _updateAllInteractionsMemory(self,newInteraction):
+    #     collection = self.MemoryDB["long_term_memories"]
+    #     self.allInteractionsMemory.insert(0,newInteraction)
+        
+    #          if memory_document is None:
+    #       collection.insert_one({"_id":str(uuid.uuid4()),"student_id":self.agid,"content_id":content_id,"memory":[]})
+    #       memory_document = collection.find_one({"student_id":self.agid,"content_id":content_id})
+        
+    #     filter_criteria = {"student_id": self.student_id, "content_id": self.content_id}
+    #     update_operation = {"$set": {"all_interactions_memory":self.allInteractionsMemory}}
+    #     collection.update_one(filter_criteria, update_operation)
+        
