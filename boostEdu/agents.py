@@ -163,6 +163,9 @@ class Tutor(Agent):
         else:
             output=  asyncio.run(self._sendStreamingResponse(awsManager,formatted_prompt))
         logging.debug(output)
+        
+        
+        
         if (self.is_streaming==False): return output 
         
    
