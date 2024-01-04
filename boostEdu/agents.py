@@ -129,16 +129,20 @@ class ContentExpert(Agent):
         else:
             logging.debug(f"🔴Not Vectara")
         return retriever    
-        
+           
     def _getRetrieverParams(self,ret_params):
         collection = self.MemoryDB["content_agents"]
-        if self.agid==None:
-            self.agid=str(uuid.uuid4())
-            collection.insert_one({"_id":self.agid,"params":ret_params})
+        if self.agid==None: 
+            self.agid=ret_params["agid"]
+            del ret_params["agid"]
         query = {"_id": self.agid}
         projection = {"params": 1,"_id":0}
-        logging.debug(f"🔔Agent id: {self.agid}")
         result = collection.find_one(query, projection)
+        if result is None:
+            if self.agid==None: raise Exception("Agent not found")
+            collection.insert_one({"_id":self.agid,"params":ret_params})
+        result = collection.find_one(query, projection)
+        logging.info(f"🔔Agent id: {self.agid}")
         return result["params"]
     
     def retrieve(self,perception):
