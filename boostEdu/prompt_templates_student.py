@@ -14,3 +14,11 @@ STUDENT_RETRIEVE_TEMPLATE = ChatPromptTemplate.from_template("""
         Question: 
         {question}
         """)
+
+STUDENT_LONG_TERM_LEARN_TEMPLATE= ChatPromptTemplate.from_template("""
+        Answer in english.
+        You are a student and base on your last class interactions with your tutor, show a detailed summary of what you have learned, what you have to learn and what you have to practice.
+        ----
+        Class interactions:
+        {class_interactions}
+        """)

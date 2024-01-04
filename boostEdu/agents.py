@@ -2,7 +2,7 @@ import json
 import os
 import uuid
 import logging
-logging.getLogger().setLevel(logging.INFO)
+logging.getLogger().setLevel(logging.DEBUG)
 import asyncio
 from datetime import datetime
 from typing import AsyncIterable
@@ -107,6 +107,22 @@ class Student(Agent):
         formatted_prompt = STUDENT_RETRIEVE_TEMPLATE.format(student_data=self.workingMemory,long_memory="\n".join(self.longMemory),question=perception)
         logging.debug(formatted_prompt)
         return self.llm.predict(formatted_prompt)
+    
+    def learn(self,content_id):
+        query = {"student_id": self.agid, "content_id": content_id}
+        short_term_collection = self.MemoryDB["short_term_memories"]
+        memory_document = short_term_collection.find_one(query)
+        if memory_document is None: raise Exception("Memory not found")
+        shortMemory=memory_document["memory"]
+        formatted_prompt = STUDENT_LONG_TERM_LEARN_TEMPLATE.format(class_interactions="\n".join([f"timestamp: {interaction['timestamp']} | type: {interaction['type']} | content: {interaction['content']}" for interaction in shortMemory]))
+        logging.debug(formatted_prompt)
+        knowledge= self.llm.predict(formatted_prompt)
+        self.longMemory.insert(0,f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}:{knowledge}")
+        update_operation = {"$set": {"memory":self.longMemory}}
+        long_term_collection = self.MemoryDB["long_term_memories"]
+        long_term_collection.update_one(query, update_operation)
+        logging.debug(f"After update")
+        
         
  
 class ContentExpert(Agent):
@@ -172,9 +188,9 @@ class Tutor(Agent):
             output=  asyncio.run(self._sendStreamingResponse(awsManager,formatted_prompt))
         logging.debug(output)
         
-        self._updateShortMemory(str({"type":"student","content":perception,"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}))
-        self._updateShortMemory(str({"type":"tutor","content":output,"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}))
-        
+        self._updateShortMemory({"type":"student","content":perception,"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+        self._updateShortMemory({"type":"tutor","content":output,"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+
         if (self.is_streaming==False): return output
         
    
@@ -240,15 +256,19 @@ class Tutor(Agent):
     def _updateShortMemory(self,newInteraction):
         collection = self.MemoryDB["short_term_memories"]
         query = {"student_id": self.student_id, "content_id": self.content_id}
-        projection = {"student_id": 0,"content_id":0,"_id":0,"memory":1} 
-        memory_document = collection.find_one(query,projection)
+        logging.debug(query)
+        memory_document = collection.find_one(query)
+        logging.debug(f"Memory document {memory_document}")
         if memory_document is None:
+            logging.debug(f"Memory document is None")
             collection.insert_one({"_id":str(uuid.uuid4()),"student_id":self.student_id,"content_id":self.content_id,"memory":[]})
-            memory_document = collection.find_one(query,projection)
+            logging.debug(f"After insert")
+            memory_document = collection.find_one(query)
         shortMemory=memory_document["memory"]
         shortMemory.insert(0,newInteraction)
         update_operation = {"$set": {"memory":shortMemory}}
         collection.update_one(query, update_operation)
+        logging.debug(f"After update")
         
     # def _updateAllInteractionsMemory(self,newInteraction):
     #     collection = self.MemoryDB["long_term_memories"]
