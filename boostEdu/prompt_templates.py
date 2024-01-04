@@ -3,28 +3,125 @@ from langchain.prompts import ChatPromptTemplate
 
 ##memoria procedimental
 
-####################----------TUTOR AGENT PROMPTS-----------####################
 
 TUTOR_CONTEXT_TEMPLATE = ChatPromptTemplate.from_template("""
         Answer in english.
-        In each answer, call the the user by his/her name.
+        In each answer, call the the student by his/her name.
         Respond in a friendly way.
         Use markdown to format the text.
-        Adapt your response base on the user's data and the chat history.
-        Use the following passages to answer the user's question.
-        If the answer doesn't require the context just answer base on your knowledge, but, if you don't know the answer, just say that you don't know, don't try to make up an answer.
+        Adapt your response base on the student's data and the student's background knowledge and experience.
+        Use the content data to answer the student's question.
+        If the answer doesn't require the content data just answer base on the student's data, but, if you don't know the answer, just say that you don't know, don't try to make up an answer.
         ----
-        User data:
+        Student's data:
         {student_data}
         ----
-        Chat History:
-        {chat_history}
+        Student's background knowledge and experience:
+        {student_background}
         ----
-        Content (Book, class, etc.):
-        {context}
+        Content data (Book, class, etc.):
+        {content_data}
         ----
         Question: {question}
         """)
+
+
+
+TUTOR_PRESENTATION_TEMPLATE = ChatPromptTemplate.from_template("""
+        Create a beatiful, creative, visually attractive and clear 6 slides presentation about the content using swiper
+        Answer in english
+        Just return the HTML code that is inside the <div class="swiper" style="width: 40vw; height: 50vh; border-radius: 10px;">
+        Use the following clases : swiper-wrapper, swiper-slide, .swiper-pagination, .swiper-button-next, .swiper-button-prev, .swiper-scrollbar
+        Use different font colors, font styles, background colors, background images, aligments of elements and markdown style
+        Use the font: Arial in all the slides
+        Make sure the text has a different font color than the background
+        In each slide add a title, a subtitle and and a paragraph
+        Do not change the width of the slides
+        The .swiper-button-next and .swiper-button-prev must be black
+        Do not add padding or margin to the slides
+        Do not return anything else besides the HTML code
+        Your response must be in a single line of text that be interpreted as HTML code
+        Explain the content(Book, class, etc) and also adapt it base on the student's background knowledge and experience
+        Do not include user's personal data inside the slides (name, email,age, etc)
+        ----
+        Student's data:
+        {student_data}
+        ----
+        Student's background knowledge and experience:
+        {student_background}
+        ----
+        Content data (Book, class, etc.):
+        {content_data}
+        ----
+        """)
+
+TUTOR_PLAN_TEMPLATE = ChatPromptTemplate.from_template("""
+        A learning goal is a specific, measurable objective that outlines what an individual aims to learn or achieve over a certain period. It's often used in educational and professional development contexts to guide learning activities and track progress
+        Answer in english
+        Respond in a friendly way
+        Adapt your response base on the 
+        Base on student's background knowledge, experience and the content data create a 6 nodes graph of learning goals(Steps to learn) as a learning path
+        Do not add any text the graph edges
+        The graph must have an start and an end node
+        The graph must be create with mermaid
+        Each node must have just one child node
+        The graph must be a TD(Top down) graph
+        Do not add any style to the graph and nodes, just make sure all nodes are circular. Hint: To make a node circular make sure to sorround the node like this: A((Hi))
+        Just return the Html code that is inside the <pre class="mermaid">
+        Do not return anything else besides the HTML code
+        Your response must be in a single line of text that be interpreted as HTML code
+        ----
+        Student's data:
+        {student_data}
+        ----
+        Student's background knowledge and experience:
+        {student_background}
+        ----
+        Content data (Book, class, etc.):
+        {content_data}
+        ----
+        """)
+
+
+
+TUTOR_PRESENTATION_SCRIPT_TEMPLATE = ChatPromptTemplate.from_template("""
+        Given the following html code of a swiper presentation
+        Return a short script for a person to read and explain what is inside the presentation
+        Just describe the text inside each slide
+        Do not describe the graphics, images, tables, colors, etc
+        Start saying welcome to boost education.
+        Do not mention swiper or any other library.
+        ----
+        Swiper presentation HTML code:
+        {presentation_html}
+        ----
+        """)
+
+
+
+
+
+
+# TUTOR_CONTEXT_TEMPLATE = ChatPromptTemplate.from_template("""
+#         Answer in english.
+#         In each answer, call the the user by his/her name.
+#         Respond in a friendly way.
+#         Use markdown to format the text.
+#         Adapt your response base on the user's data and the chat history.
+#         Use the following passages to answer the user's question.
+#         If the answer doesn't require the context just answer base on your knowledge, but, if you don't know the answer, just say that you don't know, don't try to make up an answer.
+#         ----
+#         User data:
+#         {student_data}
+#         ----
+#         Chat History:
+#         {chat_history}
+#         ----
+#         Content (Book, class, etc.):
+#         {context}
+#         ----
+#         Question: {question}
+#         """)
 
 
 # TUTOR_PLAN_TEMPLATE = ChatPromptTemplate.from_template("""
@@ -45,34 +142,6 @@ TUTOR_CONTEXT_TEMPLATE = ChatPromptTemplate.from_template("""
 #         Content (Book, class, etc.):
 #         {context}
 #         """)
-
-
-TUTOR_PLAN_TEMPLATE = ChatPromptTemplate.from_template("""
-        A learning goal is a specific, measurable objective that outlines what an individual aims to learn or achieve over a certain period. It's often used in educational and professional development contexts to guide learning activities and track progress
-        Answer in english
-        Respond in a friendly way
-        Adapt your response base on the user's data and the chat history
-        Use the following passages and data to create a 6 nodes graph of learning goals as a learning path
-        Do not add any text the graph edges
-        The graph must have an start and an end node
-        The graph must be create with mermaid
-        Each node must have just one child node
-        The graph must be a TD(Top down) graph
-        Do not add any style to the graph and nodes, just make sure all nodes are circular. Hint: To make a node circular make sure to sorround the node like this: A((Hi))
-        Just return the Html code that is inside the <pre class="mermaid">
-        Do not return anything else besides the HTML code
-        Your response must be in a single line of text that be interpreted as HTML code
-        ----
-        User data:
-        {student_data}
-        ----
-        Chat History:
-        {chat_history}
-        ----
-        Content (Book, class, etc.):
-        {context}
-        """)
-
 
 
 # TUTOR_PRESENTATION_TEMPLATE = ChatPromptTemplate.from_template("""
@@ -133,77 +202,3 @@ TUTOR_PLAN_TEMPLATE = ChatPromptTemplate.from_template("""
 #         Content (Book, class, etc.):
 #         {context}
 #         """)
-
-
-TUTOR_PRESENTATION_TEMPLATE = ChatPromptTemplate.from_template("""
-        Create a beatiful, creative, visually attractive and clear 6 slides presentation about the content using swiper
-        Answer in english
-        Just return the HTML code that is inside the <div class="swiper" style="width: 40vw; height: 50vh; border-radius: 10px;">
-        Use the following clases : swiper-wrapper, swiper-slide, .swiper-pagination, .swiper-button-next, .swiper-button-prev, .swiper-scrollbar
-        Use different font colors, font styles, background colors, background images, aligments of elements and markdown style
-        Use the font: Arial in all the slides
-        Make sure the text has a different font color than the background
-        In each slide add a title, a subtitle and and a paragraph
-        Do not change the width of the slides
-        The .swiper-button-next and .swiper-button-prev must be black
-        Do not add padding or margin to the slides
-        Do not return anything else besides the HTML code
-        Your response must be in a single line of text that be interpreted as HTML code
-        Explain the content(Book, class, etc) and also adapt it base on the thinks the user likes, the user's goals
-        Do not include user's personal data inside the slides (name, email,age, etc)
-        ----
-        User data:
-        {student_data}
-        ----
-        Chat History:
-        {chat_history}
-        ----
-        Content (Book, class, etc.):
-        {context}
-        """)
-
-
-TUTOR_PRESENTATION_SCRIPT_TEMPLATE = ChatPromptTemplate.from_template("""
-        Given the following html code of a swiper presentation
-        Return a short script for a person to read and explain what is inside the presentation
-        Just describe the text inside each slide
-        Do not describe the graphics, images, tables, colors, etc
-        Start saying welcome to boost education.
-        Do not mention swiper or any other library.
-        ----
-        Swiper presentation HTML code:
-        {presentation_html}
-        ----
-        """)
-
-
-
-####################----------CONTENT AGENT PROMPTS-----------####################
-
-CONTENT_AGENT_SUMMARY_CONTENT_TEMPLATE = ChatPromptTemplate.from_template("""
-        You are an expert explaining about the following content.
-        Thus, given the following passages (Chunks of data) from a content (Book, class, etc.) return a deep and extensive summary of the content, remarking the most important concepts and ideas.
-        At the beginning of the summary, show the content's metadata(title, author, etc.)
-        ----
-        Content Chunks:
-        {content_chunks}
-        ----
-        """)
-
-
-
-CONTENT_AGENT_ANSW_QUESTION_CONTENT_TEMPLATE = ChatPromptTemplate.from_template("""
-        You are an expert explaining about the following content.
-        You received the following question.
-        
-        ----
-        Question:
-        {question}
-        
-        Thus, given the following passages (Chunks of data) from a content (Book, class, etc.) return a deep and extensive answer to the question about the content, remarking the most important concepts and ideas.
-        At the beginning of the summary, show the content's metadata(title, author, etc.)
-        ----
-        Content Chunks:
-        {content_chunks}
-        ----
-        """)
