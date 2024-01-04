@@ -168,7 +168,8 @@ class Tutor(Agent):
             output=  asyncio.run(self._sendStreamingResponse(awsManager,formatted_prompt))
         logging.debug(output)
         
-        
+        self._updateShortMemory(str({"type":"student","content":perception,"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}))
+        self._updateShortMemory(str({"type":"tutor","content":output,"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}))
         
         if (self.is_streaming==False): return output
         
