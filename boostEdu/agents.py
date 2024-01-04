@@ -2,7 +2,7 @@ import json
 import os
 import uuid
 import logging
-logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger().setLevel(logging.INFO)
 import asyncio
 from datetime import datetime
 from typing import AsyncIterable
