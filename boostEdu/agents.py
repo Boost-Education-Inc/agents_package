@@ -81,9 +81,9 @@ class AWSManager():
         return f'https://{bucket_name}.s3.amazonaws.com/{file_path}' 
             
              
-class Student(Agent):               
-    def __init__(self,student_id,is_streaming=False):
-        super().__init__(student_id,is_streaming)
+class Learner(Agent):               
+    def __init__(self,learner_id,is_streaming=False):
+        super().__init__(learner_id,is_streaming)
         self.workingMemory= self._initWorkingMemory()
         self.longMemory=[]
         
@@ -104,7 +104,7 @@ class Student(Agent):
         self.longMemory=memory_document["memory"]
 
     def retrieve(self,perception):
-        formatted_prompt = STUDENT_RETRIEVE_TEMPLATE.format(student_data=self.workingMemory,long_memory="\n".join(self.longMemory),question=perception)
+        formatted_prompt = LEARNER_RETRIEVE_TEMPLATE.format(student_data=self.workingMemory,long_memory="\n".join(self.longMemory),question=perception)
         logging.debug(formatted_prompt)
         return self.llm.predict(formatted_prompt)
     
@@ -114,7 +114,7 @@ class Student(Agent):
         memory_document = short_term_collection.find_one(query)
         if memory_document is None: raise Exception("Memory not found")
         shortMemory=memory_document["memory"]
-        formatted_prompt = STUDENT_LONG_TERM_LEARN_TEMPLATE.format(class_interactions="\n".join([f"timestamp: {interaction['timestamp']} | type: {interaction['type']} | content: {interaction['content']}" for interaction in shortMemory]))
+        formatted_prompt = LEARNER_LONG_TERM_LEARN_TEMPLATE.format(class_interactions="\n".join([f"timestamp: {interaction['timestamp']} | type: {interaction['type']} | content: {interaction['content']}" for interaction in shortMemory]))
         logging.debug(formatted_prompt)
         knowledge= self.llm.predict(formatted_prompt)
         self.longMemory.insert(0,f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}:{knowledge}")
@@ -169,10 +169,10 @@ class ContentExpert(Agent):
 
  
 class Tutor(Agent):
-    def __init__(self,student_id,content_id,is_streaming=False):
+    def __init__(self,learner_id,content_id,is_streaming=False):
         super().__init__(None,is_streaming)
         
-        self.student_id=student_id
+        self.learner_id=learner_id
         self.content_id=content_id
         
                
@@ -255,13 +255,13 @@ class Tutor(Agent):
             
     def _updateShortMemory(self,newInteraction):
         collection = self.MemoryDB["short_term_memories"]
-        query = {"student_id": self.student_id, "content_id": self.content_id}
+        query = {"student_id": self.learner_id, "content_id": self.content_id}
         logging.debug(query)
         memory_document = collection.find_one(query)
         logging.debug(f"Memory document {memory_document}")
         if memory_document is None:
             logging.debug(f"Memory document is None")
-            collection.insert_one({"_id":str(uuid.uuid4()),"student_id":self.student_id,"content_id":self.content_id,"memory":[]})
+            collection.insert_one({"_id":str(uuid.uuid4()),"student_id":self.learner_id,"content_id":self.content_id,"memory":[]})
             logging.debug(f"After insert")
             memory_document = collection.find_one(query)
         shortMemory=memory_document["memory"]
