@@ -103,7 +103,7 @@ class Learner(Agent):
           memory_document = collection.find_one({"student_id":self.agid,"content_id":content_id})
         self.longMemory=memory_document["memory"]
 
-    def retrieve(self,perception):
+    def speak(self,perception):
         formatted_prompt = LEARNER_RETRIEVE_TEMPLATE.format(student_data=self.workingMemory,long_memory="\n".join(self.longMemory),question=perception)
         logging.debug(formatted_prompt)
         return self.llm.predict(formatted_prompt)
@@ -161,7 +161,7 @@ class ContentExpert(Agent):
         logging.info(f"🔔Agent id: {self.agid}")
         return result["params"]
     
-    def retrieve(self,perception):
+    def speak(self,perception):
         content_chunks = "".join(document.page_content for document in self.workingMemory.invoke(input="Key aspects of each part/charper/section"))
         formatted_prompt = CONTENT_AGENT_ANSW_QUESTION_CONTENT_TEMPLATE.format(content_chunks=content_chunks,question=perception)
         logging.debug(formatted_prompt)
@@ -176,7 +176,7 @@ class Tutor(Agent):
         self.content_id=content_id
         
                
-    def retrieve(self,studentData,studentLongMemory,content,perception,awsManager=None):
+    def speak(self,studentData,studentLongMemory,content,perception,awsManager=None):
         formatted_prompt = TUTOR_CONTEXT_TEMPLATE.format(student_data=studentData,
                                                          student_background=studentLongMemory,
                                                          content_data=content,
@@ -194,7 +194,7 @@ class Tutor(Agent):
         if (self.is_streaming==False): return output
         
    
-    def retrievePresentation(self,studentData,studentLongMemory,content,awsManager:AWSManager=None):
+    def speakPresentation(self,studentData,studentLongMemory,content,awsManager:AWSManager=None):
         formatted_prompt = TUTOR_PRESENTATION_TEMPLATE.format(student_data=studentData,
                                                          student_background=studentLongMemory,
                                                          content_data=content)
@@ -206,7 +206,7 @@ class Tutor(Agent):
         else:awsManager.sendDataToClientAPIGateway(presentation_code)
     
     
-    def retrieveLearningPlan(self,studentData,studentLongMemory,content,awsManager:AWSManager=None):
+    def speakLearningPlan(self,studentData,studentLongMemory,content,awsManager:AWSManager=None):
         formatted_prompt = TUTOR_PLAN_TEMPLATE.format(student_data=studentData,
                                                          student_background=studentLongMemory,
                                                          content_data=content)
@@ -217,7 +217,7 @@ class Tutor(Agent):
         else:awsManager.sendDataToClientAPIGateway(plan_code)
     
     
-    def retrievePresentationToSpeech(self,presentation_html_str,awsManager:AWSManager,sendToClientAPIGateway=False):
+    def speakPresentationToSpeech(self,presentation_html_str,awsManager:AWSManager,sendToClientAPIGateway=False):
         formatted_prompt = TUTOR_PRESENTATION_SCRIPT_TEMPLATE.format(presentation_html=presentation_html_str)
         presentation_script=self.llm.predict(formatted_prompt)
         logging.debug(presentation_script)
