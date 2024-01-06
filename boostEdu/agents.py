@@ -176,57 +176,112 @@ class Tutor(Agent):
         self.content_id=content_id
         
                
-    def speak(self,studentData,studentLongMemory,content,perception,awsManager=None):
-        formatted_prompt = TUTOR_CONTEXT_TEMPLATE.format(student_data=studentData,
-                                                         student_background=studentLongMemory,
-                                                         content_data=content,
-                                                         question=perception)
-        logging.debug(formatted_prompt)
-        if (self.is_streaming==False):
-            output= self.llm.predict(formatted_prompt)
-        else:
-            output=  asyncio.run(self._sendStreamingResponse(awsManager,formatted_prompt))
-        logging.debug(output)
+    # def speak(self,studentData,studentLongMemory,content,perception,awsManager=None):
+    #     formatted_prompt = TUTOR_CONTEXT_TEMPLATE.format(student_data=studentData,
+    #                                                      student_background=studentLongMemory,
+    #                                                      content_data=content,
+    #                                                      question=perception)
+    #     logging.debug(formatted_prompt)
+    #     if (self.is_streaming==False):
+    #         output= self.llm.predict(formatted_prompt)
+    #     else:
+    #         output=  asyncio.run(self._sendStreamingResponse(awsManager,formatted_prompt))
+    #     logging.debug(output)
         
-        self._updateShortMemory({"type":"student","content":perception,"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
-        self._updateShortMemory({"type":"tutor","content":output,"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+    #     self._updateShortMemory({"type":"student","content":perception,"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+    #     self._updateShortMemory({"type":"tutor","content":output,"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
 
-        if (self.is_streaming==False): return output
+    #     if (self.is_streaming==False): return output
+     
+    
+    def speak(self,perception):
+         
+        if perception['type']=='chat':
+            formatted_prompt = TUTOR_CONTEXT_TEMPLATE.format(student_data=perception['studentData'],
+                                                         student_background=perception['studentLongMemory'],
+                                                         content_data=perception['content'],
+                                                         question=perception['question'])
+            
+            logging.debug(formatted_prompt)
+            if (self.is_streaming==False):
+                output= self.llm.predict(formatted_prompt)
+            else:
+                output=  asyncio.run(self._sendStreamingResponse(perception['awsManager'],formatted_prompt))
+            logging.debug(output)
+            self._updateShortMemory({"type":"student","content":perception,"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+            self._updateShortMemory({"type":"tutor","content":output,"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+            if (self.is_streaming==False): return output
         
+        elif perception['type']=='presentation':
+            formatted_prompt = TUTOR_PRESENTATION_TEMPLATE.format(student_data=perception['studentData'],
+                                                         student_background=perception['studentLongMemory'],
+                                                         content_data=perception['content'])
+            logging.debug(formatted_prompt)
+            presentation_code=self.llm.predict(formatted_prompt)
+            presentation_code=presentation_code.replace("html","")
+            presentation_code=presentation_code.replace("\n","")
+            if (perception.get('awsManager',None)==None):return presentation_code
+            else:perception.get('awsManager',None).sendDataToClientAPIGateway(presentation_code)
+            
+            
+        elif perception['type']=='learning_plan':
+            formatted_prompt = TUTOR_PLAN_TEMPLATE.format(student_data=perception['studentData'],
+                                                         student_background=perception['studentLongMemory'],
+                                                         content_data=perception['content'])
+            logging.debug(formatted_prompt)
+            plan_code=self.llm.predict(formatted_prompt)
+            plan_code=plan_code.replace("html","")
+            if (perception.get('awsManager',None)==None):return plan_code
+            else:perception.get('awsManager',None).sendDataToClientAPIGateway(plan_code)
+        
+        elif perception['type']=='presentation_to_speech':
+            formatted_prompt = TUTOR_PRESENTATION_SCRIPT_TEMPLATE.format(presentation_html=perception['presentation_html_str'])
+            presentation_script=self.llm.predict(formatted_prompt)
+            logging.debug(presentation_script)
+            data={
+                "audio_url":perception['awsManager'].savePollyIntoS3(perception['awsManager'].getSpeechBytes(presentation_script)),
+                "presentation_script":presentation_script}
+            
+            if perception['sendToClientAPIGateway']: perception['awsManager'].sendDataToClientAPIGateway(data)
+            else: return data
+        
+        else:
+            raise Exception("Perception type not supported")    
+            
    
-    def speakPresentation(self,studentData,studentLongMemory,content,awsManager:AWSManager=None):
-        formatted_prompt = TUTOR_PRESENTATION_TEMPLATE.format(student_data=studentData,
-                                                         student_background=studentLongMemory,
-                                                         content_data=content)
-        logging.debug(formatted_prompt)
-        presentation_code=self.llm.predict(formatted_prompt)
-        presentation_code=presentation_code.replace("html","")
-        presentation_code=presentation_code.replace("\n","")
-        if (awsManager==None):return presentation_code
-        else:awsManager.sendDataToClientAPIGateway(presentation_code)
+    # def speakPresentation(self,studentData,studentLongMemory,content,awsManager:AWSManager=None):
+    #     formatted_prompt = TUTOR_PRESENTATION_TEMPLATE.format(student_data=studentData,
+    #                                                      student_background=studentLongMemory,
+    #                                                      content_data=content)
+    #     logging.debug(formatted_prompt)
+    #     presentation_code=self.llm.predict(formatted_prompt)
+    #     presentation_code=presentation_code.replace("html","")
+    #     presentation_code=presentation_code.replace("\n","")
+    #     if (awsManager==None):return presentation_code
+    #     else:awsManager.sendDataToClientAPIGateway(presentation_code)
     
     
-    def speakLearningPlan(self,studentData,studentLongMemory,content,awsManager:AWSManager=None):
-        formatted_prompt = TUTOR_PLAN_TEMPLATE.format(student_data=studentData,
-                                                         student_background=studentLongMemory,
-                                                         content_data=content)
-        logging.debug(formatted_prompt)
-        plan_code=self.llm.predict(formatted_prompt)
-        plan_code=plan_code.replace("html","")
-        if (awsManager==None):return plan_code
-        else:awsManager.sendDataToClientAPIGateway(plan_code)
+    # def speakLearningPlan(self,studentData,studentLongMemory,content,awsManager:AWSManager=None):
+    #     formatted_prompt = TUTOR_PLAN_TEMPLATE.format(student_data=studentData,
+    #                                                      student_background=studentLongMemory,
+    #                                                      content_data=content)
+    #     logging.debug(formatted_prompt)
+    #     plan_code=self.llm.predict(formatted_prompt)
+    #     plan_code=plan_code.replace("html","")
+    #     if (awsManager==None):return plan_code
+    #     else:awsManager.sendDataToClientAPIGateway(plan_code)
     
     
-    def speakPresentationToSpeech(self,presentation_html_str,awsManager:AWSManager,sendToClientAPIGateway=False):
-        formatted_prompt = TUTOR_PRESENTATION_SCRIPT_TEMPLATE.format(presentation_html=presentation_html_str)
-        presentation_script=self.llm.predict(formatted_prompt)
-        logging.debug(presentation_script)
-        data={
-            "audio_url":awsManager.savePollyIntoS3(awsManager.getSpeechBytes(presentation_script)),
-            "presentation_script":presentation_script}
+    # def speakPresentationToSpeech(self,presentation_html_str,awsManager:AWSManager,sendToClientAPIGateway=False):
+    #     formatted_prompt = TUTOR_PRESENTATION_SCRIPT_TEMPLATE.format(presentation_html=presentation_html_str)
+    #     presentation_script=self.llm.predict(formatted_prompt)
+    #     logging.debug(presentation_script)
+    #     data={
+    #         "audio_url":awsManager.savePollyIntoS3(awsManager.getSpeechBytes(presentation_script)),
+    #         "presentation_script":presentation_script}
         
-        if sendToClientAPIGateway: awsManager.sendDataToClientAPIGateway(data)
-        else: return data
+    #     if sendToClientAPIGateway: awsManager.sendDataToClientAPIGateway(data)
+    #     else: return data
 
     
     async def _sendStreamingResponse(self,awsManager:AWSManager,input_prompt):
@@ -269,16 +324,4 @@ class Tutor(Agent):
         update_operation = {"$set": {"memory":shortMemory}}
         collection.update_one(query, update_operation)
         logging.debug(f"After update")
-        
-    # def _updateAllInteractionsMemory(self,newInteraction):
-    #     collection = self.MemoryDB["long_term_memories"]
-    #     self.allInteractionsMemory.insert(0,newInteraction)
-        
-    #          if memory_document is None:
-    #       collection.insert_one({"_id":str(uuid.uuid4()),"student_id":self.agid,"content_id":content_id,"memory":[]})
-    #       memory_document = collection.find_one({"student_id":self.agid,"content_id":content_id})
-        
-    #     filter_criteria = {"student_id": self.student_id, "content_id": self.content_id}
-    #     update_operation = {"$set": {"all_interactions_memory":self.allInteractionsMemory}}
-    #     collection.update_one(filter_criteria, update_operation)
         
